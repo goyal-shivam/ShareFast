@@ -34,11 +34,11 @@
 typedef struct istoc{   // initialize server to client
     char filename[MAX_FILE_NAME];
     int size;   // denotes the number of bytes that this file contains
+    int port_no;
 } istoc;
 
 typedef struct ictos{   // initialize client to server
     int ack;
-    int port_no;
 } ictos;
 
 typedef struct dstoc{   // data transfer server to client
