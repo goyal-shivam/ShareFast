@@ -120,6 +120,21 @@ void sendd()/////////////// SEND
 		
 		printf("Enter the location of file to send: ");
 		scanf("%s", fname);
+
+
+		// 
+		// if checkfile( fname, struct *istoc, file ** ) > 0 then show error and return.
+		
+		//else
+		//1. open the file
+		//2. check no. of bytes
+		
+
+		//                       //
+
+
+
+		//int  getblock( file*, char*, int blockno   )  -> returns no. of bytes read
 		
 		
 		
