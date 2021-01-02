@@ -1,0 +1,163 @@
+#include<time.h>
+#include<stdio.h>
+#include<error.h>
+#include<errno.h>
+#include<netdb.h>
+#include<stdlib.h>
+#include<unistd.h>
+#include<string.h>
+#include<signal.h>
+#include<sys/wait.h>
+#include<sys/time.h>
+#include<sys/stat.h>
+#include<sys/types.h>
+#include<arpa/inet.h>
+#include<sys/socket.h>
+
+
+#define NAME_MAX 50 // Maximum length of file name
+char fname[NAME_MAX]; //Store the file name
+
+
+
+#define R_WAIT 10 // No. of seconds to wait while recieving
+
+#define P_PORT 501 // The port to initially connect
+int 	P_FD;	   // The UDP FD for P_PORT 
+
+
+
+
+
+
+void end(int sig)////////////////////// SIGNAL HANDLER
+{
+	close(P_FD);
+	printf("\n                         THANK YOU                              \n");
+	exit(0);
+
+}
+
+
+void start()///////////////////////// Display host IP and bind P_FD to P_PORT
+{
+	printf("\n                          WELCOME                              \n\n");
+	printf("\n------------------- INFO AND INITIALIZATION -------------------\n");
+
+	char *IP, *IP2, host[100];
+	struct hostent *hen;
+	if(gethostname(host, sizeof(host)) == -1)
+	{
+		perror("Host information error");
+		end(1);
+	}
+
+	if((hen = gethostbyname(host))==NULL)
+	{
+		perror("Host information error");
+		end(1);
+	}
+
+		
+	
+
+
+	struct sockaddr_in localbind;
+	P_FD = socket(AF_INET, SOCK_DGRAM, 0);
+	if(P_FD==-1) 
+	{ 
+		perror("Socket error");
+		end(1);
+	}
+
+	int tttt = 1; 
+	if (setsockopt(P_FD, SOL_SOCKET, SO_REUSEADDR, &tttt , sizeof(int)) < 0)
+    	{
+		perror("Setsockopt error");
+		end(1);
+	}
+
+	localbind.sin_family       = AF_INET;
+	localbind.sin_addr.s_addr  = htonl(INADDR_ANY);
+	localbind.sin_port         = htons(P_PORT);
+	if (bind(P_FD, (struct sockaddr *) &localbind, sizeof(localbind)) == -1)
+	{ 
+		perror("Bind error");
+		end(1);
+	}
+	
+
+	IP = inet_ntoa(*((struct in_addr*) hen->h_addr_list[0]));
+	printf("Your Name       -> %s\n", host);
+	printf("Your IP         -> %s\n", IP);
+	printf("Public UDP Port -> %d\n", P_PORT);
+
+
+
+}
+
+void recieve()/////////////// RECIEVE
+{
+		printf("\n--------------------------- RECIEVE ---------------------------\n\n");
+		printf("Listening for %d seconds",R_WAIT);
+		for(int i=0; i<R_WAIT; i++)
+		{
+			fflush(stdout);
+			sleep(1);
+			printf(".");
+		}
+		printf("\n\nNo sender has contacted\n");
+
+}
+
+
+void sendd()/////////////// SEND
+{
+		char IP[30];
+		printf("\n---------------------------- SEND -----------------------------\n\n");
+		printf("Enter the destination IP: ");
+		scanf("%s", IP);
+		
+		printf("Enter the location of file to send: ");
+		scanf("%s", fname);
+		
+		
+		
+
+}
+
+
+void main()
+{
+	signal(SIGINT, end);	
+	start();
+	char choice[10];
+	
+	printf("\n---------------------------- START ----------------------------\n\n");
+
+	printf("Enter the option number to execute -    1: Recieve\n\t\t\t\t\t2: Send\n\t\t\t\t\t3: Exit\n>> ");
+	while(1)
+	{
+		scanf("%s",choice);
+		if(((choice[0]!='1')&&(choice[0]!='2')&&(choice[0]!='3'))||(strlen(choice)!=1))
+			printf("Please enter a valid option!\n>> ");
+		
+		else break;
+	}
+
+
+	if(choice[0]=='1')
+	{
+		recieve();
+	}
+
+	else if(choice[0]=='2')
+	{
+		sendd();	
+	}
+	
+	else if(choice[0]=='3')
+		end(1);
+
+
+}
