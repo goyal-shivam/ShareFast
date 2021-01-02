@@ -1,34 +1,4 @@
-#include<time.h>
-#include<stdio.h>
-#include<error.h>
-#include<errno.h>
-#include<netdb.h>
-#include<stdlib.h>
-#include<unistd.h>
-#include<string.h>
-#include<signal.h>
-#include<sys/wait.h>
-#include<sys/time.h>
-#include<sys/stat.h>
-#include<sys/types.h>
-#include<arpa/inet.h>
-#include<sys/socket.h>
-
-
-#define NAME_MAX 50 // Maximum length of file name
-char fname[NAME_MAX]; //Store the file name
-
-
-
-#define R_WAIT 10 // No. of seconds to wait while recieving
-
-#define P_PORT 501 // The port to initially connect
-int 	P_FD;	   // The UDP FD for P_PORT 
-
-
-
-
-
+#include "header.h"
 
 void end(int sig)////////////////////// SIGNAL HANDLER
 {
@@ -110,10 +80,53 @@ void recieve()/////////////// RECIEVE
 
 }
 
+int checkfile(char* filename, struct istoc* x, FILE** fp){
+	DIR* d = opendir(directory);
+	struct dirent* dir;
+	
+	if(d)
+	{
+		while((dir = readdir(d)) != NULL)
+			if(strcmp(dir->d_name, filename) == 0){
+				char newfile[MAX_FILE_NAME];
+				newfile[0] = '\0';
+				strcat(newfile, directory);
+				strcat(newfile, "/");
+				strcat(newfile, filename);
+				
+				*fp = fopen(newfile, "r");
+				fseek(*fp,0L,SEEK_END);				
+				x->size = ftell(*fp);
+				fseek(*fp,0L,SEEK_SET);
+			
+				return 0;
+			}
+		
+		closedir(d);
+	}
+	
+	return -1;
+}
+
+int getblock(FILE* fp, char* arr,int block){
+
+	int offset = block-1;
+	if(offset < 0){
+		printf("SERVER REQUEST: Error, block number entered is %d\n",block);
+		return -1;
+	}
+	offset *= MAX_DATA_PACKET_SIZE;
+	fseek(fp, offset, SEEK_SET);
+	
+	int fread_return = fread(arr, sizeof(char), MAX_DATA_PACKET_SIZE, fp);
+		
+	return fread_return;
+}
 
 void sendd()/////////////// SEND
 {
 		char IP[30];
+		char fname[MAX_FILE_NAME]; //Store the file name
 		printf("\n---------------------------- SEND -----------------------------\n\n");
 		printf("Enter the destination IP: ");
 		scanf("%s", IP);
