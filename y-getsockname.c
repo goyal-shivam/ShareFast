@@ -16,7 +16,7 @@ int getfreeFD()
 	for(int i=0; i<MAX_CLIENTS; i++)
 		if(used_FDs[i]==0)
 		{
-			open_FDs[i]=1;
+			used_FDs[i]=1;
 			return open_FDs[i];
 		}
 
@@ -141,6 +141,7 @@ void recieve()/////////////// RECIEVE
 ////////////////////////////////// Process request at new port
 				
 				int next_FD = getfreeFD();
+				printf("%d FD will be next\n",next_FD);
 				if(next_FD==-1)
 				{	
 					printf("Error: Max client limit of %d reached... please wait for a transfer to finish\n",MAX_CLIENTS);
@@ -149,7 +150,7 @@ void recieve()/////////////// RECIEVE
 
 				struct sockaddr_in sin;
 				socklen_t len = sizeof(sin);
-				if (getsockname(P_FD, (struct sockaddr *)&sin, &len) == -1)
+				if (getsockname(next_FD, (struct sockaddr *)&sin, &len) == -1)
  					perror("getsockname");
 				
 				else
