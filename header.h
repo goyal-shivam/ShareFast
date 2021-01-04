@@ -22,8 +22,18 @@
 
 
 #define R_WAIT 10 // No. of seconds to wait while recieving
+#define S_WAIT 10 // No. of seconds to wait for receiver to respond
 
-#define P_PORT 501 // The port to initially connect
+#define P_PORT 502 // The port to initially connect
+
+
+
+
+#define MAX_CLIENTS 10	// Size of FD pool
+int open_FDs[MAX_CLIENTS];  // ready FDs alotted for use
+int used_FDs[MAX_CLIENTS];  // 1: FD busy   0: FD free
+
+
 
 
 
@@ -52,5 +62,5 @@ typedef struct dctos{   // data transfer server to client
 } dctos;
 
 
-
 int 	P_FD;	   // The UDP FD for P_PORT 
+
