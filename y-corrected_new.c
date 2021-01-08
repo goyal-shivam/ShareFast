@@ -507,7 +507,8 @@ void sendd() /////////////// SEND
 					for(int j=0;j<num_packets;++j)
 						ack[j] = 0;
 					
-					int next_block=-1;
+					//int next_block=-1;
+					int next_block=0;
 					dstoc DSTOC;
 					dctos DCTOS;
 					int fread_return;
@@ -520,12 +521,16 @@ void sendd() /////////////// SEND
 					//	if poll arrives, check it
 
 					while(ack_packets < num_packets){
-						++next_block;
+						// ++next_block;
 						if(next_block >= num_packets)
 							next_block = 0;
 					
 						for(;next_block<num_packets && ack[next_block] == 1;++next_block);
 						next_block +=1;		// this is just to make next_block 1-indexed from being 0-indexed
+						
+						if(next_block > num_packets){
+							continue;
+						}
 						
 						int num_chars = 0;	// number of characters in this block of data
 						
