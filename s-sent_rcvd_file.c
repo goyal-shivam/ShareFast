@@ -216,6 +216,7 @@ void recieve()/////////////// RECIEVE
 				struct pollfd fds;
 				fds.fd = next_FD;
 				fds.events = POLLIN;
+				int poll_return;
 				
 			
 				// 3. receive a block, register it in your database, send ack for it
@@ -228,7 +229,9 @@ void recieve()/////////////// RECIEVE
 					
 					// printf("recvfrom output = %ld\n",recvfrom(next_FD, &DSTOC, sizeof(DSTOC), 0, (struct sockaddr *)&clientaddress, &address_len));
 					
-					if(poll(&fds,1,POLL_TIMEOUT) > 0){	//
+					fds.fd = next_FD;
+					fds.events = POLLIN;
+					if((poll_return=poll(&fds,1,POLL_TIMEOUT)) > 0){	//
 						if(fds.revents & POLLIN){
 							if(recvfrom(next_FD, &DSTOC, sizeof(DSTOC), 0, (struct sockaddr *)&clientaddress, &address_len)<=0)
 								perror("recvfrom in receive function: ");
@@ -264,10 +267,14 @@ void recieve()/////////////// RECIEVE
 							else
 								printf("sent acknowledgement for block no. %d\n", DSTOC.block);
 						}
+						else{
+							printf("poll returned with value %d but we received nothing\n", poll_return);
+						}
 					}
 					else{
 						// timeout exceeded
-						printf("no block received since %d second; CLOSING CONNECTION\n", POLL_TIMEOUT);
+						printf("poll_return = %d\n\tno block received since %d second; CLOSING CONNECTION\n", poll_return, POLL_TIMEOUT);
+						printf("\trcvd_packets = %d\tnum_packets = %d\n", rcvd_packets, num_packets);
 						break;
 					}
 				}
@@ -275,6 +282,9 @@ void recieve()/////////////// RECIEVE
 
 				if(rcvd_packets < num_packets){
 					printf("recvfrom output = %ld\n",recvfrom(next_FD, &DSTOC, sizeof(DSTOC), 0, (struct sockaddr *)&clientaddress, &address_len));
+					
+					DSTOC.block = ntohl(DSTOC.block);
+					printf("block number = %d\tdata = %.10s", DSTOC.block, DSTOC.data);
 					
 					printf("rcvd_packets = %d\tnum_packets = %d\n", rcvd_packets, num_packets);
 				}
@@ -511,15 +521,19 @@ void sendd() /////////////// SEND
 						if((sendto_return = sendto(next_FD, &DSTOC, sizeof(DSTOC), 0, (struct sockaddr *)&clientaddress, sizeof(clientaddress)))<sizeof(DSTOC))
 							printf("sendto returned %d for block = %d\n", sendto_return, next_block);
 						else{
-							// printf("sent block no. %d, data = %.10s\n", next_block, DSTOC.data);
+							printf("sent block no. %d, data = %.10s\n", next_block, DSTOC.data);
 							//;
+							/*
 							if(printed_sent_block == 0){
 								printf("sent block no. %d\n", next_block);
 								printed_sent_block = 1;
 							}
+							*/
 						}
 						
 						
+						fds.fd = next_FD;
+						fds.events = POLLIN;
 						while(poll(&fds,1,0) > 0){
 							// receive acknowledgements
 							if(fds.revents & POLLIN){
@@ -528,13 +542,17 @@ void sendd() /////////////// SEND
 								DCTOS.block = ntohl(DCTOS.block);
 								
 								if(DCTOS.block <= num_packets){
-									printf("received acknowledgement for block no. %d\n", DCTOS.block);
-									ack[DCTOS.block-1] = 1;
-									++ack_packets;
+									if(ack[DCTOS.block-1] == 0){
+										printf("received acknowledgement for block no. %d\n", DCTOS.block);
+										ack[DCTOS.block-1] = 1;
+										++ack_packets;
+									}
 								}
 								else
 									printf("Received unknown acknowledgement from client for block - %d\n", DCTOS.block);
 							}
+							fds.fd = next_FD;
+							fds.events = POLLIN;
 						}
 					
 					}
@@ -639,4 +657,3 @@ void main()
 
 
 }
-
