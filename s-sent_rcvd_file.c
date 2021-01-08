@@ -181,6 +181,9 @@ void recieve()/////////////// RECIEVE
 				////////////////		     -> clientaddress, [NOTE that:    address_len = sizeof(clientaddress)]
 
 
+					struct timeval before, after, result;
+					gettimeofday(&before, NULL);
+
 
 				/// receive the file
 				/// create a file
@@ -290,6 +293,11 @@ void recieve()/////////////// RECIEVE
 				}
 				else if(rcvd_packets == num_packets){
 					printf("successfully received the file completely\n");
+					
+					
+					gettimeofday(&after, NULL);
+					timersub(&after, &before, &result);
+					printf("Time elapsed : %ld.%06ld\n", (long int)result.tv_sec, (long int)result.tv_usec);
 				}
 				else{
 					printf("ERROR in receive(): rcvd_packets = %d\tnum_packets = %d\n", rcvd_packets, num_packets);
@@ -471,6 +479,10 @@ void sendd() /////////////// SEND
 					/////////////////		     -> clientaddress, [NOTE that:    address_len = sizeof(clientaddress)]
 
 
+					struct timeval before, after, result;
+					gettimeofday(&before, NULL);
+
+
 	/*
 					ff is the file pointer
 
@@ -489,7 +501,7 @@ void sendd() /////////////// SEND
 					for(int j=0;j<num_packets;++j)
 						ack[j] = 0;
 					
-					int next_block;
+					int next_block=-1;
 					dstoc DSTOC;
 					dctos DCTOS;
 					int fread_return;
@@ -502,8 +514,12 @@ void sendd() /////////////// SEND
 					//	if poll arrives, check it
 
 					while(ack_packets < num_packets){
-						for(next_block = 0;next_block<num_packets && ack[next_block] == 1;++next_block);
-						next_block +=1;
+						++next_block;
+						if(next_block >= num_packets)
+							next_block = 0;
+					
+						for(;next_block<num_packets && ack[next_block] == 1;++next_block);
+						next_block +=1;		// this is just to make next_block 1-indexed from being 0-indexed
 						
 						int num_chars = 0;	// number of characters in this block of data
 						
@@ -558,6 +574,12 @@ void sendd() /////////////// SEND
 					}
 					
 						fclose(ff);
+						printf("successfully sent the file completely\n");
+						
+						
+						gettimeofday(&after, NULL);
+						timersub(&after, &before, &result);
+						printf("Time elapsed : %ld.%06ld\n", (long int)result.tv_sec, (long int)result.tv_usec);
 
 
 
