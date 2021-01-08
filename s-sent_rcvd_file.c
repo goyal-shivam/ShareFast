@@ -297,7 +297,13 @@ void recieve()/////////////// RECIEVE
 					
 					gettimeofday(&after, NULL);
 					timersub(&after, &before, &result);
-					printf("Time elapsed : %ld.%06ld\n", (long int)result.tv_sec, (long int)result.tv_usec);
+					printf("Time elapsed : %ld.%06ld\n\trcvd_packets = %d\tnum_packets = %d\n", (long int)result.tv_sec, (long int)result.tv_usec, rcvd_packets, num_packets);
+					
+					for(int x = 0;x<num_packets;++x)
+						if(rcvd[x] != 1)
+							printf("%d\t",x+1);
+							
+					printf("\n");
 				}
 				else{
 					printf("ERROR in receive(): rcvd_packets = %d\tnum_packets = %d\n", rcvd_packets, num_packets);
@@ -579,9 +585,13 @@ void sendd() /////////////// SEND
 						
 						gettimeofday(&after, NULL);
 						timersub(&after, &before, &result);
-						printf("Time elapsed : %ld.%06ld\n", (long int)result.tv_sec, (long int)result.tv_usec);
+						printf("Time elapsed : %ld.%06ld\n\tack_packets = %d\tnum_packets = %d\n", (long int)result.tv_sec, (long int)result.tv_usec, ack_packets, num_packets);
 
-
+						for(int x = 0;x<num_packets;++x)
+							if(ack[x] != 1)
+								printf("%d\t",x+1);
+								
+						printf("\n");
 
 				}
 				else
