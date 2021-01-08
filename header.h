@@ -14,6 +14,7 @@
 #include<arpa/inet.h>
 #include<sys/socket.h>
 #include<dirent.h>
+#include<poll.h>
 
 
 #define MAX_FILE_NAME 50 // Maximum length of file name
@@ -38,6 +39,7 @@ int used_FDs[MAX_CLIENTS];  // 1: FD busy   0: FD free
 
 
 #define MAX_DATA_PACKET_SIZE 512
+#define POLL_TIMEOUT 10000
 
 #define directory "."
 
@@ -64,3 +66,9 @@ typedef struct dctos{   // data transfer server to client
 
 int 	P_FD;	   // The UDP FD for P_PORT 
 
+
+
+int putblock(FILE* fp, char*arr, int block, int num_chars);	//
+
+
+int printed_sent_block = 0;
