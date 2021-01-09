@@ -261,14 +261,14 @@ void recieve()/////////////// RECIEVE
 							++rcvd_packets;
 							rcvd[DSTOC.block-1] = 1;
 							
-							printf("received block no. %d\n", DSTOC.block);
+							// printf("received block no. %d\n", DSTOC.block);
 							
 							DCTOS.block = DSTOC.block;
 							////////////DCTOS.block = htonl(DCTOS.block);
 							if(sendto(next_FD, &DCTOS, sizeof(DCTOS), 0, (struct sockaddr *)&clientaddress, sizeof(clientaddress)) < sizeof(DCTOS))
 								perror("sendto in receive function: ");
 							else
-								printf("sent acknowledgement for block no. %d\n", DSTOC.block);
+								;//printf("sent acknowledgement for block no. %d\n", DSTOC.block);
 						}
 						else{
 							printf("poll returned with value %d but we received nothing\n", poll_return);
@@ -548,7 +548,7 @@ void sendd() /////////////// SEND
 						if((sendto_return = sendto(next_FD, &DSTOC, sizeof(DSTOC), 0, (struct sockaddr *)&clientaddress, sizeof(clientaddress)))<sizeof(DSTOC))
 							printf("sendto returned %d for block = %d\n", sendto_return, next_block);
 						else{
-							printf("sent block no. %d, data = %.10s\n", next_block, DSTOC.data);
+							// printf("sent block no. %d, data = %.10s\n", next_block, DSTOC.data);
 							//;
 							/*
 							if(printed_sent_block == 0){
@@ -570,7 +570,7 @@ void sendd() /////////////// SEND
 								
 								if(DCTOS.block <= num_packets){
 									if(ack[DCTOS.block-1] == 0){
-										printf("received acknowledgement for block no. %d\n", DCTOS.block);
+										// printf("received acknowledgement for block no. %d\n", DCTOS.block);
 										ack[DCTOS.block-1] = 1;
 										++ack_packets;
 									}
