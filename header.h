@@ -38,7 +38,7 @@ int used_FDs[MAX_CLIENTS];  // 1: FD busy   0: FD free
 
 
 
-#define MAX_DATA_PACKET_SIZE 512
+#define MAX_DATA_PACKET_SIZE 1470
 #define POLL_TIMEOUT 10000
 
 #define directory "."
@@ -55,13 +55,16 @@ typedef struct ictos{   // initialize client to server
 } ictos;
 
 typedef struct dstoc{   // data transfer server to client
-    int block;  // block number of this data
+    int block;  // Non zero -> block number of data   		0 -> Ack array flush
     char data[MAX_DATA_PACKET_SIZE];
 } dstoc;
 
 typedef struct dctos{   // data transfer server to client
-    int block;    // block number for which acknowledgement is being sent
+	int mark_num;			// Increases from 1,2, 3 ..... to keep track of number of arrays.
+	int array[MAX_DATA_PACKET_SIZE*10];
 } dctos;
+
+
 
 
 int 	P_FD;	   // The UDP FD for P_PORT 
