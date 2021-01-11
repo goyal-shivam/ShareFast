@@ -39,6 +39,7 @@ int used_FDs[MAX_CLIENTS];  // 1: FD busy   0: FD free
 
 
 #define MAX_DATA_PACKET_SIZE 1470
+#define WINDOW_SIZE 100
 #define POLL_TIMEOUT 10000
 
 #define directory "."
@@ -61,7 +62,9 @@ typedef struct dstoc{   // data transfer server to client
 
 typedef struct dctos{   // data transfer server to client
 	int mark_num;			// Increases from 1,2, 3 ..... to keep track of number of arrays.
-	int array[MAX_DATA_PACKET_SIZE*10];
+//	int array[MAX_DATA_PACKET_SIZE*10];
+//	int array[(MAX_DATA_PACKET_SIZE-4)/4];
+	int array[WINDOW_SIZE];
 } dctos;
 
 
