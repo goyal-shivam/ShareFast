@@ -1,6 +1,6 @@
 #include "header.h"
 
-void end(int sig)////////////////////// SIGNAL HANDLER
+void end(int sig)		////////////////////// SIGNAL HANDLER
 {
 	close(P_FD);
 	for(int i=0; i<MAX_CLIENTS; i++)
@@ -25,7 +25,7 @@ int getfreeFD()
 
 
 
-void start()///////////////////////// Display host IP and bind P_FD to P_PORT
+void start()			///////////////////////// Display host IP and bind P_FD to P_PORT
 {
 	printf("\n                          WELCOME                              \n\n");
 	printf("\n------------------- INFO AND INITIALIZATION -------------------\n");
@@ -272,7 +272,7 @@ void recieve()/////////////// RECIEVE
 						printf("Flushing ngative acknowledgements\n");
 						
 						int counter=0;
-						for(int xx=0; xx<num_packets; xx++)
+						for(int xx=0; xx<num_packets && counter<WINDOW_SIZE; xx++)
 							if(rcvd[xx]==0)
 							{
 								printf("%d. Flush: -ve block -> %d\n",counter+1, xx+1);
@@ -281,11 +281,15 @@ void recieve()/////////////// RECIEVE
 
 						DCTOS.array[counter]=0;
 						printf("%d/%d packets remaining\n",counter,num_packets);
-						DCTOS.mark_num= overall_mark++;
+						DCTOS.mark_num= ++overall_mark;
 						
-						if(counter==0) all_done=1;
+						if(counter==0){ 
+							all_done=1;
+							// send FLUSH_ACK;
+							DCTOS.mark_num = 0;
+						}
 
-						sendto(send_FD, &DCTOS, sizeof(DCTOS), 0, (struct sockaddr *)&clientaddress, sizeof(clientaddress)) < sizeof(DCTOS);
+						sendto(send_FD, &DCTOS, sizeof(DCTOS), 0, (struct sockaddr *)&clientaddress, sizeof(clientaddress));
 						clientaddress.sin_port = htons(ii.port);
 					}
 
@@ -530,7 +534,7 @@ void sendd() /////////////// SEND
 						for(int sending_packet=1; sending_packet <= num_packets; sending_packet++)
 						{
 						
-							if(ack[sending_packet]==1)
+							if(ack[sending_packet-1]==1)
 								continue;
 							
 
@@ -540,7 +544,7 @@ void sendd() /////////////// SEND
 
 
 
-							if(sending_packet == num_packets-1)
+							if(sending_packet == num_packets)
 								num_chars = (cc.size-1) % MAX_DATA_PACKET_SIZE + 1;
 
 							else
@@ -550,6 +554,13 @@ void sendd() /////////////// SEND
 
 							DSTOC.block = sending_packet;
 							fread_return = getblock(ff, DSTOC.data, sending_packet, num_chars);
+							
+							// struct pollfd poll_out;
+							// poll_out.fd = send_FD;
+							// poll_out.events = POLLOUT;
+							
+							// if(poll(poll_out, 1, ))
+							
 							if((sendto(send_FD, &DSTOC, sizeof(DSTOC), 0, (struct sockaddr *)&clientaddress, sizeof(clientaddress)))<sizeof(DSTOC))
 							{
 								printf("Sendto error\n");
@@ -561,7 +572,11 @@ void sendd() /////////////// SEND
 							printf("Packet %d sent\n",sending_packet);
 							usleep(50);
 						}
-
+						
+						for(int z=0; z<num_packets; z++){
+							ack[z] = 1;
+						}
+						
 						DSTOC.block=0;          // Sending flusk ACK request
 						if((sendto(send_FD, &DSTOC, sizeof(DSTOC), 0, (struct sockaddr *)&clientaddress, sizeof(clientaddress)))<sizeof(DSTOC))
 						{
@@ -613,7 +628,7 @@ void sendd() /////////////// SEND
 								clientaddress.sin_port = htons(ic.port);
 							}
 								
-							printf("ACK array %d has been sent\n",DCTOS.mark_num);
+							printf("NACK array %d has been received\n",DCTOS.mark_num);
 							if(DCTOS.array[0]==0)
 							{
 								all_done=1;
@@ -629,7 +644,8 @@ void sendd() /////////////// SEND
 									if(DCTOS.array[z]==0)
 										break;
 
-									ack[DCTOS.array[z]-1]=1;
+									// ack[DCTOS.array[z]-1]=1;
+									ack[DCTOS.array[z]-1]=0;
 									
 								}
 							
